@@ -5,30 +5,28 @@ namespace MouseController
 {
     public class GamepadReader
     {
-        // 1. Dichiarazione degli Eventi
-        // EventHandler<bool>: il booleano indica se il tasto è PREMUTO (true) o RILASCIATO (false)
-        public event EventHandler<bool> ButtonA_StateChanged;
-
-        public event EventHandler<bool> ButtonB_StateChanged;
+        // 1. EVENTS STATEMENT
+        // EventHandler<bool>: the boolean indicates if the key is PRESSED(true) or RELEASED (false)
+        public event EventHandler<bool> ButtonRT_StateChanged;
+        public event EventHandler<bool> ButtonLT_StateChanged;
 
         private const byte TriggerThreshold = 50;
+
         private bool _wasRTPressed = false;
-        public event EventHandler<bool> RightTrigger_StateChanged; // true=DOWN, false=UP
+        public event EventHandler<bool> RightTrigger_StateChanged; // true = DOWN, false = UP
 
         private bool _wasLTPressed = false;
-        public event EventHandler<bool> LeftTrigger_StateChanged; // true=DOWN, false=UP
-
+        public event EventHandler<bool> LeftTrigger_StateChanged; // true = DOWN, false = UP
 
         private Controller _controller;
         private State _state;
 
-        // 2. Variabili per la gestione dello stato precedente (Edge Detection/Anti-Spam)
-        public bool _wasAButtonPressed = false;
-        public bool _wasBButtonPressed = false;
+        // 2. VARIABLES FOR MANAGING THE PREVIOUS STATE (Edge Detection/Anti-Spam)
+        public bool _wasRTButtonPressed = false;
+        public bool _wasLTButtonPressed = false;
 
-        //MOVIMENTO MOUSE
-        private const float Deadzone = 0.15f; // <--- AGGIUNGI LA DEADZONE
-        //
+        // MOUSE MOVEMENT
+        private const float Deadzone = 0.15f; // DEADZONE
 
         public GamepadReader()
         {
@@ -37,13 +35,11 @@ namespace MouseController
 
         public bool IsConnected => _controller.IsConnected;
 
-        // Metodi ausiliari per la lettura dei pulsanti
-        public bool IsButtonAPressed() => _state.Gamepad.Buttons.HasFlag(GamepadButtonFlags.A);
-        public bool IsButtonBPressed() => _state.Gamepad.Buttons.HasFlag(GamepadButtonFlags.B);
+        // AUXILIARY METHODS FOR READING BUTTONS
+        public bool IsButtonRTPressed() => _state.Gamepad.Buttons.HasFlag(GamepadButtonFlags.A);
+        public bool IsButtonLTPressed() => _state.Gamepad.Buttons.HasFlag(GamepadButtonFlags.B);
 
-        /// <summary>
-        /// Aggiorna lo stato del controller e solleva gli eventi in caso di cambio di stato.
-        /// </summary>
+        // Upadates the status of the controller and raises events when there is a change of the status
         public void Update()
         {
             if (_controller.IsConnected)
@@ -54,160 +50,88 @@ namespace MouseController
             }
         }
 
-        // Logica principale di Edge Detection e sollevamento eventi
+        // Principal logic of Edge Detection and events raises
         public void HandleButtonEvents()
         {
-            // Tasto A (Sinistro)
-            bool isAPressed = IsButtonAPressed();
-            if (isAPressed && !_wasAButtonPressed)
-            {
-                // Stato è cambiato: RILASCIATO -> PREMUTO
-                ButtonA_StateChanged?.Invoke(this, true); // Solleva l'evento: Tasto Giù
-                _wasAButtonPressed = true;
-            }
-            else if (!isAPressed && _wasAButtonPressed)
-            {
-                // Stato è cambiato: PREMUTO -> RILASCIATO
-                ButtonA_StateChanged?.Invoke(this, false); // Solleva l'evento: Tasto Su
-                _wasAButtonPressed = false;
-            }
-
-            // Tasto B (Destro)
-            bool isBPressed = IsButtonBPressed();
-            if (isBPressed && !_wasBButtonPressed)
-            {
-                // Stato è cambiato: RILASCIATO -> PREMUTO
-                ButtonB_StateChanged?.Invoke(this, true); // Solleva l'evento: Tasto Giù
-                _wasBButtonPressed = true;
-            }
-            else if (!isBPressed && _wasBButtonPressed)
-            {
-                // Stato è cambiato: PREMUTO -> RILASCIATO
-                ButtonB_StateChanged?.Invoke(this, false); // Solleva l'evento: Tasto Su
-                _wasBButtonPressed = false;
-            }
-
-            // Tasto RT
+            // Tasto RT (Left Click)
             bool isRTPressed = _state.Gamepad.RightTrigger > TriggerThreshold;
             if (isRTPressed && !_wasRTPressed)
             {
-                // Stato è cambiato: RILASCIATO -> PREMUTO
+                // Status is changed: RELEASED -> PRESSED
                 RightTrigger_StateChanged?.Invoke(this, true); // Solleva l'evento: Grilletto Giù
                 _wasRTPressed = true;
             }
             else if (!isRTPressed && _wasRTPressed)
             {
-                // Stato è cambiato: PREMUTO -> RILASCIATO
+                // Status is changed: PRESSED -> RELEASED
                 RightTrigger_StateChanged?.Invoke(this, false); // Solleva l'evento: Grilletto Su
                 _wasRTPressed = false;
             }
 
-            // Tasto LT
+            // Tasto LT (Right Click)
             bool isLTPressed = _state.Gamepad.LeftTrigger > TriggerThreshold;
             if (isLTPressed && !_wasLTPressed)
             {
-                // Stato è cambiato: RILASCIATO -> PREMUTO
+                // Status is changed: RELEASED -> PRESSED
                 LeftTrigger_StateChanged?.Invoke(this, true); // Solleva l'evento: Grilletto Giù
                 _wasLTPressed = true;
             }
             else if (!isLTPressed && _wasLTPressed)
             {
-                // Stato è cambiato: PREMUTO -> RILASCIATO
+                // Status is changed: PRESSED -> RELEASED
                 LeftTrigger_StateChanged?.Invoke(this, false); // Solleva l'evento: Grilletto Su
                 _wasLTPressed = false;
             }
         }
 
-        //MOVIMENTO MOUSE
+        //MOUSE MOVEMENT
 
-        /// <summary>
-        /// Restituisce i valori normalizzati (-1.0 a 1.0) dello stick sinistro
-        /// applicando la Deadzone per evitare drift.
-        /// </summary>
+        // Return normalized values (-1.0 a 1.0) of the left stick
+        // applying Deadzone to avoid drift and using separated
+        // axis (X, Y) to improve precision of the movement so that
+        // it applies the deadzone to each axis separately.
+
+        // Return the normalized value (-1.0 a 1.0) of axis X of the left stick.
         public float GetRightStickX()
         {
             if (!_controller.IsConnected) return 0f;
 
-            // Lettura valore raw e normalizzazione
+            // Raw value reading and normalization
             float rawX = _state.Gamepad.RightThumbX / 32768f;
 
-            // Applicazione della Deadzone (se il valore è troppo piccolo, ignoralo)
+            // Application of Deadzone (if the value is too small, ignore it)
             if (Math.Abs(rawX) < Deadzone)
             {
                 return 0f;
             }
 
-            // Ricalcola la magnitudine (per dare piena spinta all'esterno della deadzone)
+            // Recalculate magnitude (to give full thrust outside the deadzone)
             float magnitude = Math.Abs(rawX);
             float normalizedMagnitude = (magnitude - Deadzone) / (1.0f - Deadzone);
 
-            // Mantiene la direzione (segno)
+            // Maintains direction (sign)
             return Math.Sign(rawX) * normalizedMagnitude;
         }
 
-        /// <summary>
-        /// Restituisce il valore normalizzato (-1.0 a 1.0) dell'asse Y dello stick sinistro.
-        /// </summary>
+        // Return the normalized value (-1.0 a 1.0) of axis Y of the left stick.
         public float GetRightStickY()
         {
             if (!_controller.IsConnected) return 0f;
 
-            // Lettura valore raw e normalizzazione
+            // Raw value reading and normalization
             float rawY = _state.Gamepad.RightThumbY / 32768f;
 
-            // Applicazione della Deadzone
+            // Application of Deadzone
             if (Math.Abs(rawY) < Deadzone)
             {
                 return 0f;
             }
 
-            // Ricalcola la magnitudine (per dare piena spinta all'esterno della deadzone)
+            // Recalculate magnitude
             float magnitude = Math.Abs(rawY);
             float normalizedMagnitude = (magnitude - Deadzone) / (1.0f - Deadzone);
 
-            // Mantiene la direzione (segno)
-            return Math.Sign(rawY) * normalizedMagnitude;
-        }
-
-        public float GetLeftStickX()
-        {
-            if (!_controller.IsConnected) return 0f;
-
-            // Lettura valore raw e normalizzazione
-            float rawX = _state.Gamepad.LeftThumbX / 32768f;
-
-            // Applicazione della Deadzone (se il valore è troppo piccolo, ignoralo)
-            if (Math.Abs(rawX) < Deadzone)
-            {
-                return 0f;
-            }
-
-            // Ricalcola la magnitudine (per dare piena spinta all'esterno della deadzone)
-            float magnitude = Math.Abs(rawX);
-            float normalizedMagnitude = (magnitude - Deadzone) / (1.0f - Deadzone);
-
-            // Mantiene la direzione (segno)
-            return Math.Sign(rawX) * normalizedMagnitude;
-        }
-
-        public float GetLeftStickY()
-        {
-            if (!_controller.IsConnected) return 0f;
-
-            // Lettura valore raw e normalizzazione
-            float rawY = _state.Gamepad.LeftThumbY / 32768f;
-
-            // Applicazione della Deadzone
-            if (Math.Abs(rawY) < Deadzone)
-            {
-                return 0f;
-            }
-
-            // Ricalcola la magnitudine (per dare piena spinta all'esterno della deadzone)
-            float magnitude = Math.Abs(rawY);
-            float normalizedMagnitude = (magnitude - Deadzone) / (1.0f - Deadzone);
-
-            // Mantiene la direzione (segno)
+            // Maintains direction (sign)
             return Math.Sign(rawY) * normalizedMagnitude;
         }
     }
