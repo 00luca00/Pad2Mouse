@@ -23,6 +23,8 @@ It is designed mainly for Xbox controllers, and PlayStation controller support i
 | Left / right mouse click                 | ✅ Working          |
 | Xbox controller support                  | ✅ Working          |
 | PlayStation controller support           | ⚠️ Not implemented |
+| Scrolling support                        | ⚠️ Not implemented |
+| On-screen configuration UI               | ⚠️ Not implemented |
 
 ---
 
