@@ -1,6 +1,6 @@
-# MouseController 🎮🖱️
+# Pad2Mouse 🎮🖱️
 
-MouseController is a Windows tool that lets you use a **game controller as a mouse**, allowing analog stick cursor movement and button-based mouse clicks.  
+Pad2Mouse is a Windows tool that lets you use a **game controller as a mouse**, allowing analog stick cursor movement and button-based mouse clicks.  
 It is designed mainly for Xbox controllers, and PlayStation controller support is planned but not yet functional.
 
 ---
