@@ -42,5 +42,5 @@ It is designed mainly for Xbox controllers, and PlayStation controller support i
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/00luca00/MouseController.git
-cd MouseController
+git clone https://github.com/00luca00/Pad2Mouse.git
+cd Pad2Mouse
