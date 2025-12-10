@@ -2,14 +2,15 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading; // Necessario per Dispatcher
+using System.Windows.Threading;
+using System.Runtime.InteropServices;
 
-namespace MouseController
+namespace Pad2Mouse
 {
     public partial class MainWindow : Window
     {
 
-        // instance variables for the controller classes
+        // Instance variables for the controller classes
         private GamepadReader gamepadReader = new GamepadReader();
         private MouseController_Class mouseController = new MouseController_Class();
 
@@ -17,7 +18,14 @@ namespace MouseController
         private CancellationTokenSource cts = new CancellationTokenSource();
 
         //MOUSE MOVEMENT
-        private const float MouseSpeed = 15.0f; // <--- VELOCITÀ DEL MOUSE (puoi modificarla)
+        private const float MouseSpeed = 15.0f; // Mouse speed (For future adjustments)
+
+        // Preventing system sleep
+        [DllImport("kernel32.dll")]
+        static extern uint SetThreadExecutionState(uint esFlags);
+
+        const uint ES_CONTINUOUS = 0x80000000;
+        const uint ES_SYSTEM_REQUIRED = 0x00000001;
 
         public MainWindow()
         {
@@ -27,10 +35,15 @@ namespace MouseController
             SubscribeToGamepadEvents();
 
             // 2. Starts the polling loop on a background thread
-            Task.Run(() => GamepadPollingLoop(cts.Token));
+            Task.Factory.StartNew(
+                () => GamepadPollingLoop(cts.Token),
+                cts.Token,
+                TaskCreationOptions.LongRunning,    // Dedicated thread
+                TaskScheduler.Default
+            );
 
             // 3. Stop loop when window is closed
-            this.Closed += (s, e) => cts.Cancel();
+            this.Closing += (s, e) => cts.Cancel();
         }
 
         private void SubscribeToGamepadEvents()
@@ -76,17 +89,18 @@ namespace MouseController
                     // The Y is reversed between the controller and the screen (Y must decrease to move up)
                     float dy = -ry * MouseSpeed;
 
-                    mouseController.Move(dx, dy);
+                    if (dx != 0 || dy != 0)
+                        mouseController.Move(dx, dy);
                 }
                 UpdateStatusText();
 
-                await Task.Delay(10, token);
+                await Task.Delay(2, token);
             }
         }
         private void UpdateStatusText()
         {
             // Dispatcher.Invoke is necessary because asynchronous loop cannot touch UI
-            Dispatcher.Invoke(() =>
+            Dispatcher.InvokeAsync(() =>
             {
                 if (gamepadReader.IsConnected)
                 {

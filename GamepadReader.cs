@@ -1,15 +1,11 @@
 ﻿using SharpDX.XInput;
 using System;
 
-namespace MouseController
+namespace Pad2Mouse
 {
     public class GamepadReader
     {
         // 1. EVENTS STATEMENT
-        // EventHandler<bool>: the boolean indicates if the key is PRESSED(true) or RELEASED (false)
-        public event EventHandler<bool> ButtonRT_StateChanged;
-        public event EventHandler<bool> ButtonLT_StateChanged;
-
         private const byte TriggerThreshold = 50;
 
         private bool _wasRTPressed = false;
