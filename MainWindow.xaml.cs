@@ -1,9 +1,10 @@
-﻿using System;
+﻿using MouseController;
+using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using System.Runtime.InteropServices;
 
 namespace Pad2Mouse
 {
@@ -17,8 +18,12 @@ namespace Pad2Mouse
         // Tool to cancel the polling loop when the window is closed
         private CancellationTokenSource cts = new CancellationTokenSource();
 
-        //MOUSE MOVEMENT
-        private const float MouseSpeed = 15.0f; // Mouse speed (For future adjustments)
+        // MOUSE SPEED
+        private float CurrentMouseSpeed = 10.0f;
+        private float PendingMouseSpeed = 10.0f;
+
+        // MOUSE DEADZONE
+        private float PendingMouseDeadzone = 0.2f;
 
         // Preventing system sleep
         [DllImport("kernel32.dll")]
@@ -74,9 +79,10 @@ namespace Pad2Mouse
             {
                 gamepadReader.Update();
 
-                // - CURSOR MOVEMENT LOGIC -
                 if (gamepadReader.IsConnected)
                 {
+                    // - CURSOR MOVEMENT LOGIC -
+
                     // METHODS FOR RIGHT ANALOG
                     // -------------------------------------------------
                     // Call the two separate methods for X and Y
@@ -84,18 +90,25 @@ namespace Pad2Mouse
                     float ry = gamepadReader.GetRightStickY();
 
                     // Calculate the speed
-                    float dx = rx * MouseSpeed;
+                    float dx = rx * CurrentMouseSpeed;
 
                     // The Y is reversed between the controller and the screen (Y must decrease to move up)
-                    float dy = -ry * MouseSpeed;
+                    float dy = -ry * CurrentMouseSpeed;
 
                     if (dx != 0 || dy != 0)
                         mouseController.Move(dx, dy);
+
+                    // - SCROLLING LOGIC -
+                    float ly = gamepadReader.GetLeftStickY();
+
+                    int scrollAmount = (int)(ly * 40);
+                    mouseController.Scroll(scrollAmount);
                 }
                 UpdateStatusText();
 
                 await Task.Delay(2, token);
             }
+
         }
         private void UpdateStatusText()
         {
@@ -104,13 +117,68 @@ namespace Pad2Mouse
             {
                 if (gamepadReader.IsConnected)
                 {
-                    Status.Text = "Controller active";
+                    Status.Text = "Pad2Mouse";
+                    SettingsPanel.Visibility = Visibility.Visible;
+                    HelpButton.Visibility = Visibility.Visible;
                 }
                 else
                 {
                     Status.Text = "Controller not detected";
+                    SettingsPanel.Visibility = Visibility.Collapsed;
+                    HelpButton.Visibility = Visibility.Collapsed;
                 }
             });
+        }
+        // METHOD TO HELP BUTTON
+        private void HelpButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Use the right analog stick to move the mouse cursor.\n" +
+                "Use the left analog stick to scroll up and down.\n\n" +
+                "Press the RT button to perform a left click.\n" +
+                "Press the LT button to perform a right click.\n\n" +
+                "Adjust the sensitivity and deadzone sliders to customize the mouse behavior.\n\n",
+                "Help", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        }
+
+        // METHOD TO USE SENSITIVITY SLIDER
+        private void SensitivitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            PendingMouseSpeed = (float)e.NewValue;
+            if (SensitivityValue != null)
+                SensitivityValue.Text = PendingMouseSpeed.ToString("R");
+            if (ConfirmButton != null)
+                ConfirmButton.Visibility = Visibility.Visible;
+        }
+
+        // METHOD TO USE DEADZONE SLIDER
+        private void DeadzoneSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            PendingMouseDeadzone = (float)(e.NewValue / 100.0);
+            if (DeadzoneValue != null)
+                DeadzoneValue.Text = PendingMouseDeadzone.ToString("R");
+            if (ConfirmButton != null)
+                ConfirmButton.Visibility = Visibility.Visible;
+        }
+
+        // METHOD TO APPLY SENSITIVITY TO CONTROLLER
+        private void ConfirmButton_Click(object sender, RoutedEventArgs e)
+        {
+            ApplySensitivity();
+            ApplyDeadzone();
+            ConfirmButton.Visibility = Visibility.Collapsed;
+        }
+
+        // METHOD TO CHANGE CURRENT SENSITIVITY
+        private void ApplySensitivity()
+        {
+            CurrentMouseSpeed = PendingMouseSpeed;
+        }
+
+        // METHOD TO CHANGE CURRENT DEADZONE FOR MOUSE CURSOR
+        private void ApplyDeadzone()
+        {
+            gamepadReader.UpdateRightDeadzone(PendingMouseDeadzone);
         }
     }
 }

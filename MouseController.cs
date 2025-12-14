@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace MouseController
+namespace Pad2Mouse
 {
     public class MouseController_Class
     {
@@ -40,6 +40,9 @@ namespace MouseController
         // Flag for Right Click (LT Key)
         const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
         const uint MOUSEEVENTF_RIGHTUP = 0x0010;
+
+        // Flag for Mouse Wheel
+        const uint MOUSEEVENTF_WHEEL = 0x0800;
 
         // Structure Dimension
         private static readonly int InputSize = Marshal.SizeOf(typeof(INPUT));
@@ -98,6 +101,16 @@ namespace MouseController
                 }
             };
             SendInput(1, new INPUT[] { input }, InputSize);
+        }
+
+        public void Scroll(int amount)
+        {
+            INPUT input = new INPUT();
+            input.type = INPUT_MOUSE;
+            input.mi.dwFlags = MOUSEEVENTF_WHEEL;
+            input.mi.mouseData = unchecked((uint)amount);
+
+            SendInput(1, new INPUT[] { input }, Marshal.SizeOf(typeof(INPUT)));
         }
     }
 }

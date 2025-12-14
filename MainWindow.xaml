@@ -1,12 +1,98 @@
 ﻿<Window x:Class="Pad2Mouse.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Pad2Mouse" Height="200" Width="350">
+        Title="Pad2Mouse"
+        Height="400"
+        Width="350">
+
     <Grid>
-        <TextBlock x:Name="Status"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="20"
-                   Text="Initialization..." />
+        <Button
+            x:Name="HelpButton"
+            Content="?"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Margin="0,20,20,0"
+            Width="30"
+            Height="30"
+            FontWeight="Bold"
+            Visibility="Collapsed"
+            Click="HelpButton_Click" />
+        <!-- STATUS -->
+        <TextBlock
+            x:Name="Status"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Margin="0,20,0,0"
+            FontSize="20"
+            Text="Initialization..." />
+
+        <!-- SETTINGS PANEL -->
+        <Border
+            x:Name="SettingsPanel"
+            Margin="20,80,20,20"
+            Padding="15"
+            BorderThickness="1"
+            CornerRadius="8"
+            Visibility="Collapsed">
+
+            <StackPanel>
+
+                <!-- Title -->
+                <TextBlock
+                    Text="Controller Settings"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Margin="0,0,0,15"
+                    HorizontalAlignment="Center"/>
+
+                <!-- Sensitivity -->
+                <TextBlock
+                    x:Name="SensitivityLabel"
+                    Text="Mouse Sensitivity:"
+                    Margin="0,0,0,5"/>
+                <TextBlock
+                    x:Name="SensitivityValue"
+                    Text="10.0"/>
+                <Slider
+                    x:Name="SensitivitySlider"
+                    Minimum="1"
+                    Maximum="50"
+                    Value="10.0"
+                    TickFrequency="0.1"
+                    IsSnapToTickEnabled="True"
+                    Margin="0,0,0,15"
+                    ValueChanged="SensitivitySlider_ValueChanged"/>
+
+                <!-- Deadzone -->
+                <TextBlock
+                    x:Name="DeadzoneLabel"
+                    Text="Deadzone:"
+                    Margin="0,0,0,5"/>
+                <TextBlock
+                    x:Name="DeadzoneValue"
+                    Text="0.2"/>
+                <Slider
+                    x:Name="DeadzoneSlider"
+                    Minimum="0"
+                    Maximum="95"
+                    Value="20"
+                    TickFrequency="5"
+                    IsSnapToTickEnabled="True"
+                    ValueChanged="DeadzoneSlider_ValueChanged"/>
+
+                <!-- Confirm Button -->
+                <Button
+                    x:Name="ConfirmButton"
+                    Content="Conferma"
+                    Width="100"
+                    Height="30"
+                    Margin="0,10,0,0"
+                    Visibility="Collapsed"
+                    HorizontalAlignment="Center"
+                    Click="ConfirmButton_Click"/>
+
+            </StackPanel>
+        </Border>
+
     </Grid>
 </Window>
