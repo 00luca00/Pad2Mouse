@@ -7,8 +7,10 @@ It is designed mainly for Xbox controllers, and PlayStation controller support i
 
 ## Features
 
-- Move the mouse cursor using the controller's analog stick  
-- Perform left/right mouse clicks using controller buttons  
+- Move the mouse cursor using the controller's right analog stick  
+- Perform left/right mouse clicks using controller buttons
+- Scroll the mouse wheel using the controller's left analog stick
+- Sensitivity and deadzone customization from the UI
 - Smooth movement and responsiveness  
 - Works on **Windows** with **Xbox controllers**  
 - Built using **C#** and **WPF (.NET Framework)**  
@@ -22,9 +24,10 @@ It is designed mainly for Xbox controllers, and PlayStation controller support i
 | Cursor movement with analog stick        | ✅ Working          |
 | Left / right mouse click                 | ✅ Working          |
 | Xbox controller support                  | ✅ Working          |
+| Scrolling support                        | ✅ Working          |
+| Sensitivity and deadzone customization   | ✅ Working          |
+| On-screen configuration UI               | ✅ Working          |
 | PlayStation controller support           | ⚠️ Not implemented |
-| Scrolling support                        | ⚠️ Not implemented |
-| On-screen configuration UI               | ⚠️ Not implemented |
 
 ---
 
